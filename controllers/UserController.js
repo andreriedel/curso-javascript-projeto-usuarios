@@ -87,7 +87,7 @@ class UserController {
       <td>${user.name}</td>
       <td>${user.email}</td>
       <td>${(user.admin) ? "Sim" : "Não"}</td>
-      <td>${user.register}</td>
+      <td>${Utils.formatDate(user.register)}</td>
       <td>
         <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
         <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
