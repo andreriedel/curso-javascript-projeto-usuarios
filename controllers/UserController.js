@@ -14,15 +14,23 @@ class UserController {
 
       btnSubmit.disabled = true;
 
-      let values = this.getValues();
+      const values = this.getValues();
+
+      if (!values) {
+        btnSubmit.disabled = false;
+        return false;
+      }
 
       this.getPhoto()
       .then((content) => {
         values.photo = content;
         this.addLine(values);
 
+        btnSubmit.disabled = false;
         this.formEl.reset();
-        btnSubmit.disabled = true;
+        [...this.formEl.elements].forEach((field) => {
+          this.replaceClasses(field.parentElement, ["form-group"]);
+        })
       })
       .catch((event) => {
         console.error(event);
@@ -32,8 +40,18 @@ class UserController {
 
   getValues() {
     let user = {};
+    let isValid = true;
 
     [...this.formEl.elements].forEach((field) => {
+      if (["name", "email", "password"].includes(field.name) && !field.value) {
+        this.replaceClasses(field.parentElement, ["form-group", "has-error"]);
+        isValid = false;
+      } else if (!field.value) {
+        this.replaceClasses(field.parentElement, ["form-group", "has-warning"]);
+      } else {
+        this.replaceClasses(field.parentElement, ["form-group", "has-success"]);
+      }
+
       if (field.name === "gender") {
         if (field.checked) {
           user[field.name] = field.value;
@@ -44,6 +62,8 @@ class UserController {
         user[field.name] = field.value;
       }
     });
+
+    if (!isValid) return false;
   
     return new User(
       user.name,
@@ -76,6 +96,13 @@ class UserController {
       } else {
         resolve("imgs/defaultuser.jpg");
       }
+    });
+  }
+
+  replaceClasses(element, classes) {
+    element.classList.value = "";
+    classes.forEach((el) => {
+      element.classList.add(el);
     });
   }
 
