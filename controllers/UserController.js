@@ -1,16 +1,21 @@
 class UserController {
-  constructor(formId, tableId) {
-    this.formEl = document.getElementById(formId);
+  constructor(formCreateId, formUpdateId, tableId) {
+    this.formCreateEl = document.getElementById(formCreateId);
+    this.formUpdateEl = document.getElementById(formUpdateId);
     this.tableEl = document.getElementById(tableId);
 
+    this.boxCreateEl = this.formCreateEl.parentElement;
+    this.boxUpdateEl = this.formUpdateEl.parentElement;
+
     this.onSubmit();
-  }
+    this.onEdit();
+  }  
 
   onSubmit() {
-    this.formEl.addEventListener("submit", (event) => {
+    this.formCreateEl.addEventListener("submit", (event) => {
       event.preventDefault();
 
-      let btnSubmit = this.formEl.querySelector("[type=submit]");
+      let btnSubmit = this.formCreateEl.querySelector("[type=submit]");
 
       btnSubmit.disabled = true;
 
@@ -24,13 +29,19 @@ class UserController {
       this.getPhoto()
       .then((content) => {
         values.photo = content;
-        this.addLine(values);
 
+        [...this.formCreateEl].forEach((field) => {
+          if (field.type != "submit" && field.name != "admin" && field.name != "gender") {
+            this.replaceClasses(field.parentElement, ["form-group"]);
+          } else if (field.name == "gender") {
+            this.replaceClasses(field.parentElement.parentElement.parentElement, ["form-group"]);
+          }
+        });
+
+        this.formCreateEl.reset();
         btnSubmit.disabled = false;
-        this.formEl.reset();
-        [...this.formEl.elements].forEach((field) => {
-          this.replaceClasses(field.parentElement, ["form-group"]);
-        })
+
+        this.addLine(values);
       })
       .catch((event) => {
         console.error(event);
@@ -38,33 +49,57 @@ class UserController {
     });
   }
 
+  onEdit() {
+    this.formUpdateEl.querySelector("[type=button").addEventListener("click", (e) => {
+      this.showBox("create");
+    });
+  }
+
   getValues() {
     let user = {};
     let isValid = true;
+    let isGenderSelected = false;
 
-    [...this.formEl.elements].forEach((field) => {
-      if (["name", "email", "password"].includes(field.name) && !field.value) {
-        this.replaceClasses(field.parentElement, ["form-group", "has-error"]);
-        isValid = false;
-      } else if (!field.value) {
-        this.replaceClasses(field.parentElement, ["form-group", "has-warning"]);
-      } else {
-        this.replaceClasses(field.parentElement, ["form-group", "has-success"]);
-      }
-
-      if (field.name === "gender") {
-        if (field.checked) {
-          user[field.name] = field.value;
+    [...this.formCreateEl].forEach((field) => {
+      if (field.type != "submit" && field.name != "admin" && field.name != "gender") {
+        if (!field.value) { // error or warning
+          if (["name", "email", "password"].includes(field.name)) {
+            this.replaceClasses(field.parentElement, ["form-group", "has-error"]);
+            isValid = false;
+          } else {
+            this.replaceClasses(field.parentElement, ["form-group", "has-warning"]);
+          }
+        } else { // success
+          this.replaceClasses(field.parentElement, ["form-group", "has-success"]);
         }
-      } else if (field.name === "admin") {
+      }
+    });    
+
+    [...this.formCreateEl].forEach((field) => {
+      if (field.name == "gender") {
+        if (field.checked) {
+          isGenderSelected = true;
+          user[field.name] = field.value; // FIXME: field.value é sempre on
+        }
+      } else if (field.name == "admin") {
         user[field.name] = field.checked;
       } else {
         user[field.name] = field.value;
       }
     });
 
+    const genderFormGroup = [...this.formCreateEl].filter((field) => {
+      return field.name == "gender"
+    })[0].parentElement.parentElement.parentElement;
+
+    if (isGenderSelected) {
+      this.replaceClasses(genderFormGroup, ["form-group", "has-success"])
+    } else {
+      this.replaceClasses(genderFormGroup, ["form-group", "has-warning"])
+    }
+
     if (!isValid) return false;
-  
+
     return new User(
       user.name,
       user.gender,
@@ -81,7 +116,7 @@ class UserController {
     return new Promise((resolve, reject) => {
       const fileReader = new FileReader();
 
-      const file = [...this.formEl.elements].filter((item) => item.name === "photo")[0].files[0];
+      const file = [...this.formCreateEl].filter((item) => item.name == "photo")[0].files[0];
   
       fileReader.onload = () => {
         resolve(fileReader.result);
@@ -118,14 +153,30 @@ class UserController {
       <td>${(user.admin) ? "Sim" : "Não"}</td>
       <td>${Utils.formatDate(user.register)}</td>
       <td>
-        <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
+        <button type="button" class="btn btn-edit btn-primary btn-xs btn-flat">Editar</button>
         <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
       </td>
     `;
 
+    tr.querySelector(".btn-edit").addEventListener("click", (e) => {
+      this.showBox("update");
+    });
+
     this.tableEl.appendChild(tr);
 
     this.updateCount();
+  }
+
+  showBox(boxType) {
+    if (boxType == "create") {
+      this.boxCreateEl.style.display = "block";
+      this.boxUpdateEl.style.display = "none";
+    }
+    
+    if (boxType == "update") {
+      this.boxCreateEl.style.display = "none";
+      this.boxUpdateEl.style.display = "block";
+    }
   }
 
   updateCount() {
