@@ -79,7 +79,7 @@ class UserController {
       if (field.name == "gender") {
         if (field.checked) {
           isGenderSelected = true;
-          user[field.name] = field.value; // FIXME: field.value é sempre on
+          user[field.name] = field.value;
         }
       } else if (field.name == "admin") {
         user[field.name] = field.checked;
@@ -159,6 +159,30 @@ class UserController {
     `;
 
     tr.querySelector(".btn-edit").addEventListener("click", (e) => {
+      let json = JSON.parse(tr.dataset.user);
+
+      for (let attr in json) {
+        let field = this.formUpdateEl.querySelector("[name=" + attr.replace("_", "") + "]");
+
+        if (field) { // excludes register
+          switch (field.type) {
+            case "file":
+              continue;
+              break;
+            case "radio":
+              field = this.formUpdateEl.querySelector("[name=" + attr.replace("_", "") + "][value=" + json[attr] + "]");
+              field.checked = true;
+              break;
+            case "checkbox":
+              field.checked = json[attr];
+              break;
+            default:
+              field.value = json[attr];
+              break;
+          }
+        }        
+      }
+
       this.showBox("update");
     });
 
