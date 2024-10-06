@@ -345,7 +345,7 @@ class UserController {
       <td>${Utils.formatDate(user.register)}</td>
       <td>
         <button type="button" class="btn btn-edit btn-primary btn-xs btn-flat">Editar</button>
-        <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+        <button type="button" class="btn btn-delete btn-danger btn-xs btn-flat">Excluir</button>
       </td>
     `;
 
@@ -369,7 +369,7 @@ class UserController {
       <td>${Utils.formatDate(user._register)}</td>
       <td>
         <button type="button" class="btn btn-edit btn-primary btn-xs btn-flat">Editar</button>
-        <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+        <button type="button" class="btn btn-delete btn-danger btn-xs btn-flat">Excluir</button>
       </td>
     `;
 
@@ -426,6 +426,16 @@ class UserController {
 
       // Exibe o box do formulário de edição.
       this.showBox("update");
+    });
+
+    // Adiciona o evento de clique no botão excluir.
+    tr.querySelector(".btn-delete").addEventListener("click", () => {
+      if (confirm("Deseja realmente excluir?")) {
+        tr.remove(); // Remove a tr da tabela.
+
+        // Atualiza a contagem de usuários e admins cadastrados.
+        this.updateCount();
+      }
     });
   }
 
