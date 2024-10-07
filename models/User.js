@@ -84,4 +84,16 @@ class User {
   set register(value) {
     this._register = value;
   }
+
+  /* ------------------------------------------------------------------------ */
+
+  loadFromJSON(json) {
+    for (let attr in json) {
+      if (attr == "_register") {
+        this[attr] = new Date(json[attr]);
+      } else {
+        this[attr] = json[attr];
+      }
+    }
+  }
 }

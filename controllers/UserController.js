@@ -9,6 +9,9 @@ class UserController {
 
     this.onSubmit(); // Controla as ações após o usuário submeter o formulário.
     this.onEdit(); // Controla as ações após o usuário editar um cadastro.
+
+    // Adiciona na tabela os usuários armazenados no local storage.
+    this.insertUsersInTable();
   }
 
   onSubmit() {
@@ -40,6 +43,9 @@ class UserController {
       this.getPhoto(this.formCreateEl)
         .then((content) => {
           user.photo = content;
+
+          // Adiciona o usuário local storage.
+          this.insertInLocalStorage(user);
 
           // Adiciona uma linha na tabela com o novo cadastro.
           this.addLine(user);
@@ -376,6 +382,40 @@ class UserController {
     this.addEventsTr(tr); // Adiciona os eventos na tr editada.
 
     this.updateCount(); // Atualiza a contagem de usuários e admins cadastrados.
+  }
+
+  getUsersFromLocalStorage() {
+    let users = [];
+
+    if (localStorage.getItem("users")) {
+      users = JSON.parse(localStorage.getItem("users"));
+    }
+
+    return users;
+  }
+
+  insertInLocalStorage(data) {
+    // Obtém os usuários armazenados no local storage.
+    let users = this.getUsersFromLocalStorage();
+    
+    // Adiciona um novo usuário no array.
+    users.push(data);
+
+    // Atualiza o local storage.
+    localStorage.setItem("users", JSON.stringify(users));
+  }
+
+  insertUsersInTable() {
+    // Obtém os usuários armazenados no local storage.
+    let users = this.getUsersFromLocalStorage();
+
+    users.forEach(userJSON => {
+      let user = new User();
+
+      user.loadFromJSON(userJSON);
+
+      this.addLine(user);
+    })
   }
 
   addEventsTr(tr) {
