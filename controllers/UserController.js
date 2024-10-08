@@ -372,9 +372,9 @@ class UserController {
 
   editLine(userJSON, tr) {
     let user = new User();
-    
+
     user.loadFromJSON(userJSON);
-    
+
     tr = this.getTr(user, tr); // Atualiza a tr existente.
 
     this.updateCount(); // Atualiza a contagem de usuários e admins cadastrados.
@@ -468,6 +468,17 @@ class UserController {
     tr.querySelector(".btn-delete").addEventListener("click", () => {
       if (confirm("Deseja realmente excluir?")) {
         tr.remove(); // Remove a tr da tabela.
+
+        /* Reseta o formulário caso ele esteja aberto. Isso é necessário pois
+        ao excluir um tr os índices são alterados, portanto não é possível
+        localizar qual a tr correta que está sendo editada, podendo esta já ter
+        sido excluída. */
+        this.formUpdateEl.reset();
+
+        // Exibe o formulário de criação.
+        this.showBox("create");
+
+        // TODO: excluir no local storage.
 
         // Atualiza a contagem de usuários e admins cadastrados.
         this.updateCount();
