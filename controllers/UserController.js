@@ -137,20 +137,20 @@ class UserController {
           let tr = this.tableEl.rows[index];
 
           // Obtém os dados do dataset da tr.
-          let userOld = JSON.parse(tr.dataset.user);
+          let userJSON = JSON.parse(tr.dataset.user);
 
           // Mescla os objetos da tr com os dados do formulário de edição.
-          let resultUserObj = Object.assign({}, userOld, user);
+          let resultUserObj = Object.assign({}, userJSON, user);
 
           // Se não for selecionado foto durante a edição, mantém foto antiga.
           if (!user.photo) {
-            resultUserObj._photo = userOld._photo;
+            resultUserObj._photo = userJSON._photo;
           } else {
             resultUserObj._photo = content;
           }
 
           // Edita a linha da tabela com os dados do formulário.
-          this.editLine(tr, resultUserObj);
+          this.editLine(resultUserObj, tr);
 
           this.formUpdateEl.reset(); // Reseta os campos do formulário.
 
@@ -335,8 +335,9 @@ class UserController {
     });
   }
 
-  addLine(user) {
-    let tr = document.createElement("tr"); // Cria um elemento tr.
+  getTr(user, tr = null) {
+    // Cria um elemento tr caso o parâmetro seja nulo.
+    if (tr == null) tr = document.createElement("tr");
 
     // Adiciona as informações do usuário no dataset.
     tr.dataset.user = JSON.stringify(user);
@@ -357,29 +358,24 @@ class UserController {
 
     this.addEventsTr(tr); // Adiciona os eventos na tr criada.
 
+    return tr;
+  }
+
+  addLine(user) {
+    // Obtém um tr com os elementos filho e métodos adicionados.
+    let tr = this.getTr(user);
+
     this.tableEl.appendChild(tr); // Adiciona a tr na tabela.
 
     this.updateCount(); // Atualiza a contagem de usuários e admins cadastrados.
   }
 
-  editLine(tr, user) {
-    tr.dataset.user = JSON.stringify(user); // Atualiza o dataset da tr.
-
-    tr.innerHTML = `
-      <td>
-        <img src="${user._photo}" alt="User Image" class="img-circle img-sm">
-      </td>
-      <td>${user._name}</td>
-      <td>${user._email}</td>
-      <td>${user._admin ? "Sim" : "Não"}</td>
-      <td>${Utils.formatDate(user._register)}</td>
-      <td>
-        <button type="button" class="btn btn-edit btn-primary btn-xs btn-flat">Editar</button>
-        <button type="button" class="btn btn-delete btn-danger btn-xs btn-flat">Excluir</button>
-      </td>
-    `;
-
-    this.addEventsTr(tr); // Adiciona os eventos na tr editada.
+  editLine(userJSON, tr) {
+    let user = new User();
+    
+    user.loadFromJSON(userJSON);
+    
+    tr = this.getTr(user, tr); // Atualiza a tr existente.
 
     this.updateCount(); // Atualiza a contagem de usuários e admins cadastrados.
   }
@@ -397,7 +393,7 @@ class UserController {
   insertInLocalStorage(data) {
     // Obtém os usuários armazenados no local storage.
     let users = this.getUsersFromLocalStorage();
-    
+
     // Adiciona um novo usuário no array.
     users.push(data);
 
@@ -409,13 +405,13 @@ class UserController {
     // Obtém os usuários armazenados no local storage.
     let users = this.getUsersFromLocalStorage();
 
-    users.forEach(userJSON => {
+    users.forEach((userJSON) => {
       let user = new User();
 
       user.loadFromJSON(userJSON);
 
       this.addLine(user);
-    })
+    });
   }
 
   addEventsTr(tr) {
