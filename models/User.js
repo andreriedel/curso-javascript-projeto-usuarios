@@ -1,5 +1,6 @@
 class User {
   constructor(name, gender, birth, country, email, password, photo, admin) {
+    this._id;
     this._name = name;
     this._gender = gender;
     this._birth = birth;
@@ -9,6 +10,10 @@ class User {
     this._photo = photo;
     this._admin = admin;
     this._register = new Date();
+  }
+
+  get id() {
+    return this._id;
   }
 
   get name() {
@@ -48,6 +53,10 @@ class User {
   }
 
   /* ------------------------------------------------------------------------ */
+
+  set id(value) {
+    this._id = value;
+  }
 
   set name(value) {
     this._name = value;
@@ -95,5 +104,67 @@ class User {
         this[attr] = json[attr];
       }
     }
+  }
+
+  static getUsersFromLocalStorage() {
+    let users = [];
+
+    if (localStorage.getItem("users")) {
+      users = JSON.parse(localStorage.getItem("users"));
+    }
+
+    return users;
+  }
+
+  getNewID() {
+    let usersId = parseInt(localStorage.getItem("usersId"));
+
+    if (!usersId > 0) {
+      usersId = 0;
+    }
+
+    usersId++;
+
+    localStorage.setItem("usersId", usersId);
+
+    return usersId;
+  }
+
+  save() {
+    // Obtém os usuários armazenados no local storage.
+    let users = User.getUsersFromLocalStorage();
+
+    if (this.id > 0) {
+      users.map((u) => {
+        if (u._id == this.id) {
+          Object.assign(u, this);
+        }
+
+        return u;
+      });
+    } else {
+      this.id = this.getNewID();
+
+      // Adiciona um novo usuário no array.
+      users.push(this);
+    }
+
+    // Atualiza o local storage.
+    localStorage.setItem("users", JSON.stringify(users));
+  }
+
+  remove() {
+    // Obtém os usuários armazenados no local storage.
+    let users = User.getUsersFromLocalStorage();
+
+    // Remove o usuário do local storage.
+    users.forEach((user,  idx) => {
+      if (this._id == user._id) {
+        users.splice(idx, 1);
+      }
+    });
+
+    // Atualiza o local storage.
+    localStorage.setItem("users", JSON.stringify(users));
   }
 }

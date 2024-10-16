@@ -45,7 +45,7 @@ class UserController {
           user.photo = content;
 
           // Adiciona o usuário local storage.
-          this.insertInLocalStorage(user);
+          user.save();
 
           // Adiciona uma linha na tabela com o novo cadastro.
           this.addLine(user);
@@ -375,35 +375,16 @@ class UserController {
 
     user.loadFromJSON(userJSON);
 
+    user.save();
+
     tr = this.getTr(user, tr); // Atualiza a tr existente.
 
     this.updateCount(); // Atualiza a contagem de usuários e admins cadastrados.
   }
 
-  getUsersFromLocalStorage() {
-    let users = [];
-
-    if (localStorage.getItem("users")) {
-      users = JSON.parse(localStorage.getItem("users"));
-    }
-
-    return users;
-  }
-
-  insertInLocalStorage(data) {
-    // Obtém os usuários armazenados no local storage.
-    let users = this.getUsersFromLocalStorage();
-
-    // Adiciona um novo usuário no array.
-    users.push(data);
-
-    // Atualiza o local storage.
-    localStorage.setItem("users", JSON.stringify(users));
-  }
-
   insertUsersInTable() {
     // Obtém os usuários armazenados no local storage.
-    let users = this.getUsersFromLocalStorage();
+    let users = User.getUsersFromLocalStorage();
 
     users.forEach((userJSON) => {
       let user = new User();
@@ -467,6 +448,13 @@ class UserController {
     // Adiciona o evento de clique no botão excluir.
     tr.querySelector(".btn-delete").addEventListener("click", () => {
       if (confirm("Deseja realmente excluir?")) {
+        let user = new User();
+
+        // Obtém os dados do usuário e adiciona no objeto user.
+        user.loadFromJSON(JSON.parse(tr.dataset.user));
+
+        user.remove(); // Remove o usuário do local storage.
+        
         tr.remove(); // Remove a tr da tabela.
 
         /* Reseta o formulário caso ele esteja aberto. Isso é necessário pois
@@ -477,8 +465,6 @@ class UserController {
 
         // Exibe o formulário de criação.
         this.showBox("create");
-
-        // TODO: excluir no local storage.
 
         // Atualiza a contagem de usuários e admins cadastrados.
         this.updateCount();
