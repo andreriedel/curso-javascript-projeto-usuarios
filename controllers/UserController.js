@@ -375,7 +375,7 @@ class UserController {
 
     user.loadFromJSON(userJSON);
 
-    user.save();
+    user.save(); // Salva o usuário no local storage.
 
     tr = this.getTr(user, tr); // Atualiza a tr existente.
 

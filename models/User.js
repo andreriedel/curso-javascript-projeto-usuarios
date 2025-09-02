@@ -101,16 +101,16 @@ class User {
       if (attr == "_register") {
         this[attr] = new Date(json[attr]);
       } else {
-        this[attr] = json[attr];
+        this[attr] = json[attr]; // Atribui ao objeto os dados obtidos do json.
       }
     }
   }
 
   static getUsersFromLocalStorage() {
-    let users = [];
+    let users = []; // Array com todos os usuários cadastrados no local storage.
 
     if (localStorage.getItem("users")) {
-      users = JSON.parse(localStorage.getItem("users"));
+      users = JSON.parse(localStorage.getItem("users")); // Converte de JSON para array.
     }
 
     return users;
@@ -125,6 +125,7 @@ class User {
 
     usersId++;
 
+    // Adiciona um novo id de usuário ao local storage.
     localStorage.setItem("usersId", usersId);
 
     return usersId;
@@ -135,12 +136,12 @@ class User {
     let users = User.getUsersFromLocalStorage();
 
     if (this.id > 0) {
-      users.map((u) => {
-        if (u._id == this.id) {
-          Object.assign(u, this);
+      users.map((user) => {
+        if (user._id == this.id) {
+          Object.assign(user, this);
         }
 
-        return u;
+        return user;
       });
     } else {
       this.id = this.getNewID();
